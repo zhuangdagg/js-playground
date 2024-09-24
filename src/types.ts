@@ -11,6 +11,11 @@ export interface EditorEmits {
   (e: 'change', code: string): void
 }
 
+export interface File {
+  filename: string,
+  value: string
+}
+
 export const injectKeyProps: InjectionKey<ToRefs<Required<{ 
     autoSave: boolean,
     autoResize: boolean,

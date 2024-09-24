@@ -1,4 +1,4 @@
-let uid = 1
+
 export class PreviewProxy {
     iframe: HTMLIFrameElement
     handlers: Record<string, Function>
@@ -18,12 +18,16 @@ export class PreviewProxy {
 
     handle_repl_message(evt: any) {
         if (evt.source !== this.iframe.contentWindow) return
-        // todo:
-        console.log(evt, '--from preview proxy')
-        const { typ } = evt.data
+        
+        const { typ, prop } = evt.data
         switch(typ) {
             case 'ready':
                 this.handlers?.on_ready?.(evt.data)
+                break;
+            case 'console':
+                const message = prop === 'log' ? 'console: ' + evt.data.message : ''
+                this.handlers.on_console?.(message)
+                break;
         }
     }
 

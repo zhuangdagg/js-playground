@@ -2,8 +2,9 @@
     <div class="playground">
         <SplitPane>
             <template #left>
-                <div class="files">
-                    <button v-for="(file, index) in files" @click="activeIndex = index">{{ file.filename }}</button>
+                <div class="files-tab">
+                    <button :class="{ 'active-btn': index === activeIndex}" :key="file.filename" v-for="(file, index) in files" @click="activeIndex = index">{{ file.filename }}</button>
+                    <button title="清空" style="margin-left: auto;" @click="onClear">清空</button>
                 </div>
                 <CodeMirror v-bind="files[activeIndex]" @change="onChange"/>
             </template>
@@ -16,15 +17,23 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { ref, watch } from 'vue';
 import CodeMirror from './codemirror/CodeMirror.vue'
 import SplitPane from './SplitPane.vue';
 import Preview from './output/Preview.vue';
+import type { File } from './types';
 
-const files = ref([
+type DefaultFile = {
+    filename: 'index.html'|'main.js'|'style.css',
+    value: string
+}
+
+const props = defineProps<{ defaultFiles?: DefaultFile[]}>()
+
+const files = ref<File[]>([
     {
         filename: 'index.html',
-        value: `<div id="app">666</div>`
+        value: `<div id="app"></div>`
     },
     {
         filename: 'main.js',
@@ -32,15 +41,44 @@ const files = ref([
     },
     {
         filename: 'style.css',
-        value: `#app { color: red; }`
+        value: `#app { }`
     }
 ])
+
 const activeIndex = ref<any>(0)
+
+watch(() => props.defaultFiles, (defaultFiles) => {
+    if(defaultFiles && defaultFiles.length) {
+        const temp: any = {}
+        for (let file of defaultFiles) {
+            temp[file.filename] = file.value
+        }
+
+        files.value = files.value.map(file => {
+            if(temp[file.filename] != undefined) {
+                file.value = temp[file.filename]
+            }
+            return file
+        })
+    }
+}, { immediate: true })
 
 const onChange = (val: string) => {
     files.value[activeIndex.value].value = val
-    console.log('change')
 }
+
+const onClear = () => {
+    files.value = files.value.map((file) => {
+        file.value = ''
+        return file
+    })
+}
+
+const getFiles = () => {
+    return files.value
+}
+
+defineExpose({ getFiles }) 
 </script>
 
 <style>
@@ -78,5 +116,15 @@ const onChange = (val: string) => {
   cursor: pointer;
   margin: 0;
   background-color: transparent;
+  padding: 4px 8px;
+  color: var(--color-branding);
+}
+.files-tab {
+    display: flex;
+    background-color: #dddd;
+}
+.files-tab .active-btn {
+    background-color: #42b8838d; 
+    color: #008855;
 }
 </style>

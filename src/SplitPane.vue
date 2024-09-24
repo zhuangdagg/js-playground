@@ -52,10 +52,10 @@ function dragEnd() {
 }
 
 function changeViewSize() {
-  const el = previewRef?.value
-  if (!el) return
-  state.viewHeight = el.offsetHeight
-  state.viewWidth = el.offsetWidth
+  // const el = previewRef?.value
+  // if (!el) return
+  // state.viewHeight = el.offsetHeight
+  // state.viewWidth = el.offsetWidth
 }
 </script>
 
