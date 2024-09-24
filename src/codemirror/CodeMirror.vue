@@ -17,12 +17,14 @@ import {
 
 } from "vue";
 
-import { injectKeyProps, EditorMode, EditorProps, EditorEmits } from "../types";
+import { EditorProps, EditorEmits } from "../types";
 
-import { basicSetup } from "codemirror";
+import { minimalSetup } from "codemirror";
 import {
   EditorView,
   keymap,
+  highlightActiveLine,
+  lineNumbers
 } from "@codemirror/view";
 import {
   Compartment,
@@ -32,22 +34,25 @@ import {
   type Extension,
   type Text,
 } from "@codemirror/state";
-import { indentWithTab } from '@codemirror/commands';
+import { indentWithTab, defaultKeymap } from '@codemirror/commands';
 import { type LanguageSupport } from '@codemirror/language'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { javascript } from '@codemirror/lang-javascript'
 import { json } from '@codemirror/lang-json'
 import { vue } from '@codemirror/lang-vue'
+import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
+import { EditorThemes } from './themes'
 
 defineOptions({
   name: "CodeMirror",
   editorType: "codemirror",
 });
 
-const props = withDefaults(defineProps<EditorProps>(), {
+const props = withDefaults(defineProps<EditorProps & { themeIndex?: number }>(), {
   value: "",
   readonly: false,
+  themeIndex: 0
 });
 
 const modes: Record<string, LanguageSupport> = {
@@ -73,17 +78,28 @@ const el = useTemplateRef("container");
 
 // codemirror
 let editor: EditorView = new EditorView();
+
 let extensions: ComputedRef<Extension[]> = computed(() => {
   const language = new Compartment()
-  // const tabSize = new Compartment()
+  const themeConfig = new Compartment()
 
   return [
-    basicSetup,
-    keymap.of([indentWithTab]),
+    minimalSetup,
+    lineNumbers(),
+    highlightActiveLine(),
+    closeBrackets(),
+    autocompletion(),
+    keymap.of([
+      ...closeBracketsKeymap,
+      ...defaultKeymap,
+      ...completionKeymap,
+      indentWithTab
+    ]),
     EditorState.allowMultipleSelections.of(true),
     EditorState.readOnly.of(props.readonly),
     EditorView.editable.of(!props.readonly),
     language.of(activeMode.value),
+    themeConfig.of(EditorThemes[props.themeIndex])
   ];
 });
 

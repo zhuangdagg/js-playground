@@ -5,8 +5,11 @@
                 <div class="files-tab">
                     <button :class="{ 'active-btn': index === activeIndex}" :key="file.filename" v-for="(file, index) in files" @click="activeIndex = index">{{ file.filename }}</button>
                     <button title="清空" style="margin-left: auto;" @click="onClear">清空</button>
+                    <select class="pg-select" :value="themeIndex" @change="onThemeChange">
+                        <option v-for="(theme, index) in EditorThemes" :value="index">{{ theme.name }}</option>
+                    </select>
                 </div>
-                <CodeMirror v-bind="files[activeIndex]" @change="onChange"/>
+                <CodeMirror v-bind="files[activeIndex]" :theme-index="themeIndex" @change="onChange"/>
             </template>
             <template #right>
                 <Preview :files="files" />
@@ -21,6 +24,7 @@ import { ref, watch } from 'vue';
 import CodeMirror from './codemirror/CodeMirror.vue'
 import SplitPane from './SplitPane.vue';
 import Preview from './output/Preview.vue';
+import { EditorThemes } from './codemirror/themes';
 import type { File } from './types';
 
 type DefaultFile = {
@@ -29,6 +33,8 @@ type DefaultFile = {
 }
 
 const props = defineProps<{ defaultFiles?: DefaultFile[]}>()
+
+const themeIndex = ref<number>(0)
 
 const files = ref<File[]>([
     {
@@ -65,6 +71,11 @@ watch(() => props.defaultFiles, (defaultFiles) => {
 
 const onChange = (val: string) => {
     files.value[activeIndex.value].value = val
+}
+
+const onThemeChange = (evt: any) => {
+    console.log(evt)
+    themeIndex.value = evt.target.value || 0
 }
 
 const onClear = () => {
@@ -114,17 +125,31 @@ defineExpose({ getFiles })
   border: none;
   outline: none;
   cursor: pointer;
-  margin: 0;
+  margin: 4px 8px;
   background-color: transparent;
-  padding: 4px 8px;
+  /* padding: 4px 8px; */
   color: var(--color-branding);
+  border-bottom: 2px solid transparent;
 }
 .files-tab {
     display: flex;
-    background-color: #dddd;
+    background-color: var(--bg-soft);
 }
 .files-tab .active-btn {
-    background-color: #42b8838d; 
-    color: #008855;
+    border-bottom: 2px solid var(--color-branding);
 }
+
+.files-tab .pg-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    position: relative;
+    padding: 0 4px;
+    border: none;
+    outline: none;
+    border-radius: inherit;
+    background-color: var(--bg-soft);
+    color: var(--color-branding);
+}
+
 </style>

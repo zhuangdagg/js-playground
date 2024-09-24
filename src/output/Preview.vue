@@ -1,7 +1,9 @@
 <template>
   <div ref="container" class="preview-contain">
     <Transition name="fade">
-      <div title="双击移除" v-show="sandboxMsg" class="console-msg" @dblclick="sandboxMsg = ''">{{ sandboxMsg }}</div>
+      <div title="双击移除" v-show="sandboxMsg.length" class="console-msg" @dblclick="sandboxMsg = []">
+        <div v-for="msg in sandboxMsg">{{ '> ' + msg.toString() }}</div>
+      </div>
     </Transition>
   </div>
 </template>
@@ -18,11 +20,11 @@ defineOptions({
 });
 
 
-const props = defineProps<{ files: any[]}>()
+const props = defineProps<{ files: any[], importMap?:any}>()
 
 const el = useTemplateRef("container");
 
-const sandboxMsg = ref<any>('')
+const sandboxMsg = ref<any>([])
 
 let sandbox: HTMLIFrameElement;
 let proxy: PreviewProxy;
@@ -64,8 +66,12 @@ function createSanbox() {
     on_ready: () => {
 
     },
-    on_console: (msg: any) => {
-      sandboxMsg.value = msg
+    on_console: (type: 'log'|'clear', msg: string) => {
+      if(type === 'log') {
+        sandboxMsg.value.push(msg)
+      } else if(type === 'clear') {
+        sandboxMsg.value = []
+      }
     }
   })
 
@@ -110,7 +116,8 @@ watch(props.files, updatePreview)
   box-shadow: 0 0 1px var(--border);
   padding: 4px 10px;
   min-height: 60px;
-  /* transition: bottom 0.5s ease; */
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .preview-contain .console-msg:hover {

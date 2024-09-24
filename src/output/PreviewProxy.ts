@@ -25,8 +25,7 @@ export class PreviewProxy {
                 this.handlers?.on_ready?.(evt.data)
                 break;
             case 'console':
-                const message = prop === 'log' ? 'console: ' + evt.data.message : ''
-                this.handlers.on_console?.(message)
+                this.handlers.on_console?.(prop, evt.data.message)
                 break;
         }
     }
